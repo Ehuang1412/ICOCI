@@ -5,28 +5,43 @@ import App from './App';
 import { createStore, applyMiddleware } from "redux";
 import { counterReducer } from "./reducers/reducers";
 import { Provider } from "react-redux";
-import * as serviceWorker from './serviceWorker';
+import logger from "redux-logger";
+
 
 
 // middleware - function return function
 // pass in store to access the state to do calculations
-const myLogger = (store) => {
-  return next => {
-    return action =>{
-      console.log("middleware ran");
-    }
-  }
+// const myLogger = (store) => {
+//   return (next) => {
+//     return (action) =>{
+//       console.log("middleware ran");
+//       return next(action);
+//     }
+//   }
+// }
+//3rd party middleware: npm i redux-logger
+const myLogger = (store) => (next) => (action) =>{
+  console.log("middleware ran");
+  return next(action);
 }
 
-const store = createStore(counterReducer, applyMiddleware(myLogger));
+const secondMiddleware = (store) => (next) => (action) =>{
+  console.log( "second middleware ran");
+  return next(action);
+}
+
+const capAtTen = (store) => (next) => (action) => {
+  if(store.getState() >= 10){
+    return next({type: "DECREMENT"})
+  }
+  next(action)
+}
+
+const store = createStore(counterReducer, applyMiddleware(myLogger,secondMiddleware,capAtTen,logger));
 
 ReactDOM.render(
   <Provider store={store}>
-  <App />
+    <App />
   </Provider>
   , document.getElementById('root'));
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();
